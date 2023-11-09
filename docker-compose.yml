@@ -20,8 +20,23 @@ services:
       - "3000:3000"
     depends_on:
       - db
+      - redis
+      - redis-commander
     environment:
       DATABASE_URL: postgres://user:example@db:5432/bobr
+  redis:
+    image: redis:6.0
+    restart: always,
+    ports:
+      - "6379:6379"
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
 volumes:
   db-data:
  

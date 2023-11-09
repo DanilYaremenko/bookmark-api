@@ -1,15 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EditUserDto, GetUserDto } from './dto';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { User } from '@prisma/client';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    private cacheService: CacheService,
   ) {}
 
   async getMe(user: User) {
@@ -22,7 +21,7 @@ export class UserService {
       return cachedData;
     }
 
-    await this.cacheService.set(`user${user.id}`, user);
+    await this.cacheService.set(`user${user.id}`, user, 10);
 
     return user;
   }
@@ -39,7 +38,7 @@ export class UserService {
 
     delete user.hash;
 
-    await this.cacheService.set(`user${userId}`, user);
+    await this.cacheService.set(`user${userId}`, user, 10);
 
     return user;
   }
