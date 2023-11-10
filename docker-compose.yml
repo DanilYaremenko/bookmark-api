@@ -1,42 +1,42 @@
 version: '3'
+
 services:
-  db:
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: development
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - .:/usr/src/app
+    command: npm run start:dev
+    ports:
+      - 3000:3000
+    depends_on:
+      - postgres
+      - redis
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis:/data
+  postgres:
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: example
-      POSTGRES_USER: user
-      POSTGRES_DB: database
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
     volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-  nestjs:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: nestjs_app
-    ports:
-      - "3000:3000"
-    depends_on:
-      - db
-      - redis
-      - redis-commander
-    environment:
-      DATABASE_URL: postgres://user:example@db:5432/bobr
-  redis:
-    image: redis:6.0
-    restart: always,
-    ports:
-      - "6379:6379"
-  redis-commander:
-    container_name: redis-commander
-    hostname: redis-commander
-    image: ghcr.io/joeferner/redis-commander:latest
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-    ports:
-      - "8081:8081"
+      - docker-nest-postgres:/var/lib/postgresql/data
 volumes:
-  db-data:
- 
+  docker-nest-postgres:
+  redis:
+    driver: local
